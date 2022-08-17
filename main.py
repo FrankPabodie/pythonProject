@@ -1,12 +1,34 @@
+import sys
+
+import keyboard
+import pynput
 import pytesseract
 import numpy as np
 from PIL import ImageGrab
 import pyautogui
-import matplotlib.pyplot as plt
 import cv2 as cv2
-import matplotlib.image as mpimg
+from pynput import keyboard
+from pynput.keyboard import Key,Controller
 
 pytesseract.pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+
+global stop
+def on_press(key):
+        if("k" == key.char):
+            global stop
+            stop = True
+            print("stop")
+            exit()
+        print('alphanumeric key {0} pressed'.format(
+            key.char))
+
+def on_release(key):
+    print('{0} released'.format(
+        key))
+    if key == keyboard.Key.esc:
+        # Stop listener
+        return False
+
 
 
 def proccesImg(img):
@@ -17,28 +39,41 @@ def proccesImg(img):
     del txt[-1]
     print(txt)
     cv2.imshow("Result", img)
-    cv2.waitKey(1)
     return txt
 
 
-x = 350
-y = 290
-offx = 240
-offy = 105
+def startsearch():
+    x = 350
+    y = 290
+    offx = 240
+    offy = 105
+    global stop
+    stop = False
+    image = ImageGrab.grab(bbox=(x, y, x + offx, y + offy))
+    i = 2
 
-image = ImageGrab.grab(bbox=(x, y, x + offx, y + offy))
-i = 2
-while (i>=0):
-    if any("Blood Plague" in n for n in proccesImg(image)):
-        print("swap")
-        i = i - 1
-        x = x + 613
-        image = ImageGrab.grab(bbox=(x, y, x + offx, y + offy))
-    elif any("Just Keeps Going" in n for n in proccesImg(image)):
-        print("swap")
-        i = i - 1
-        x = x + 613
-        image = ImageGrab.grab(bbox=(x, y, x + offx, y + offy))
-    else:
-        pyautogui.click(x, y + 500)
-        image = ImageGrab.grab(bbox=(x, y, x + offx, y + offy))
+    listener = keyboard.Listener(
+        on_press=on_press,
+        on_release=on_release)
+    listener.start()
+
+    while i >= 0:
+        if stop:
+            break
+
+        if any("Blood Plague" in n for n in proccesImg(image)):
+            print("swap")
+            i = i - 1
+            x = x + 613
+            image = ImageGrab.grab(bbox=(x, y, x + offx, y + offy))
+        elif any("Just Keeps Going" in n for n in proccesImg(image)):
+            print("swap")
+            i = i - 1
+            x = x + 613
+            image = ImageGrab.grab(bbox=(x, y, x + offx, y + offy))
+        else:
+            pyautogui.click(x, y + 500)
+            image = ImageGrab.grab(bbox=(x, y, x + offx, y + offy))
+
+
+startsearch()
